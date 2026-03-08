@@ -1,20 +1,37 @@
-import { Tray, Menu, nativeImage, BrowserWindow } from 'electron';
+import { Tray, Menu, nativeImage, BrowserWindow, app } from 'electron';
 import path from 'path';
 
 let tray: Tray | null = null;
 
+function getIconDir(): string {
+  if (app.isPackaged) {
+    // extraResource copies ./assets/icons → resources/icons
+    return path.join(process.resourcesPath, 'icons');
+  }
+  return path.join(app.getAppPath(), 'assets', 'icons');
+}
+
 export function createTray(mainWindow: BrowserWindow, quitApp: () => void) {
-  const iconPath = path.join(__dirname, '../../assets/icons/icon.png');
-  let trayIcon: ReturnType<typeof nativeImage.createFromPath>;
-  try {
-    trayIcon = nativeImage.createFromPath(iconPath);
-    if (trayIcon.isEmpty()) {
-      trayIcon = nativeImage.createEmpty();
-    } else {
-      trayIcon = trayIcon.resize({ width: 16, height: 16 });
+  const iconDir = getIconDir();
+  // Try .ico first on Windows, then .png
+  const candidates = process.platform === 'win32'
+    ? [
+        path.join(iconDir, 'icon.ico'),
+        path.join(iconDir, 'icon.png'),
+      ]
+    : [path.join(iconDir, 'icon.png')];
+
+  let trayIcon = nativeImage.createEmpty();
+  for (const iconPath of candidates) {
+    try {
+      const img = nativeImage.createFromPath(iconPath);
+      if (!img.isEmpty()) {
+        trayIcon = img.resize({ width: 16, height: 16 });
+        break;
+      }
+    } catch {
+      // try next candidate
     }
-  } catch {
-    trayIcon = nativeImage.createEmpty();
   }
 
   tray = new Tray(trayIcon);

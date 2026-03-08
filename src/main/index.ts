@@ -33,14 +33,14 @@ function handleSquirrelEvent(): boolean {
     case '--squirrel-install':
     case '--squirrel-updated':
       spawnUpdate(['--createShortcut', exeName]);
-      setTimeout(() => app.quit(), 1000);
+      setTimeout(() => process.exit(0), 1000);
       return true;
     case '--squirrel-uninstall':
       spawnUpdate(['--removeShortcut', exeName]);
-      setTimeout(() => app.quit(), 1000);
+      setTimeout(() => process.exit(0), 1000);
       return true;
     case '--squirrel-obsolete':
-      app.quit();
+      process.exit(0);
       return true;
     default:
       return false;
@@ -60,7 +60,9 @@ function createWindow() {
     height: 900,
     minWidth: 900,
     minHeight: 600,
-    icon: path.join(__dirname, '../../assets/icons/icon.png'),
+    icon: app.isPackaged
+      ? path.join(process.resourcesPath, 'icons', 'icon.png')
+      : path.join(app.getAppPath(), 'assets', 'icons', 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

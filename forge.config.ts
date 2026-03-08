@@ -9,6 +9,9 @@ const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
     icon: './assets/icons/icon',
+    extraResource: [
+      './assets/icons',
+    ],
   },
   rebuildConfig: {},
   makers: [
